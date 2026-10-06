@@ -1,0 +1,12 @@
+name: deploy
+on: push
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      PASSWORD: Azerty2024!
+    steps:
+      - uses: actions/checkout@master
+      - run: sudo apt-get install -y sshpass
+      - run: ./scripts/deploy.sh srv-01 & ./scripts/deploy.sh srv-02
