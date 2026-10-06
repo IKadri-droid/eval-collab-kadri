@@ -1,0 +1,41 @@
+services:
+  proxy:
+    image: nginx:1.27-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    restart: unless-stopped
+
+  wiki:
+    image: requarks/wiki:2.5
+    environment:
+      DB_TYPE: postgres
+      DB_HOST: db
+      DB_USER: wiki
+      DB_PASS: ${WIKI_DB_PASSWORD}
+      DB_NAME: wiki
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: wiki
+      POSTGRES_PASSWORD: ${WIKI_DB_PASSWORD}
+      POSTGRES_DB: wiki
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  db-data:
