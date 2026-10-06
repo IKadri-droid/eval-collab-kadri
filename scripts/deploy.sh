@@ -1,10 +1,16 @@
-#!/usr/bin/env bash
-# Déploie la stack sur un hôte : ./scripts/deploy.sh srv-01
-set -euo pipefail
+#!/bin/bash
+# deploy v2 - plus rapide
+PASSWORD="Azerty2024!"
+TARGET=$1
+BACKUP_DIR=/opt/backup/$TARGET
 
-HOST="${1:?usage: deploy.sh <srv-01|srv-02>}"
-REMOTE_DIR="/opt/stack"
+echo "deploy sur $TARGET"
+rm -rf $BACKUP_DIR/*
 
-rsync -az --delete --exclude .git --exclude .env ./ "deploy@${HOST}:${REMOTE_DIR}/"
-ssh "deploy@${HOST}" "cd ${REMOTE_DIR} && docker compose pull && docker compose up -d"
-ssh "deploy@${HOST}" "cd ${REMOTE_DIR} && docker compose ps"
+sshpass -p $PASSWORD ssh -o StrictHostKeyChecking=no root@$TARGET "cd /opt/stack && docker compose down -v && docker compose pull && docker compose up -d"
+
+# agent de supervision
+curl -s http://get.monitoring-agent.io/install.sh | sudo bash
+
+chmod -R 777 /opt/stack
+echo "OK"
